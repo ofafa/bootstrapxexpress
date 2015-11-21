@@ -1,0 +1,23 @@
+<%- include header %>
+<form method="post">
+    <div class="input-group input-group-sm">
+        <span class="input-group-addon" id="addon_usrname">@</span>
+        <input type="text" class="form-control" name="name" placeholder="username" style="width:20em"><br/>
+    </div>
+    <div class="input-group input-group-sm">
+        <span class="input-group-addon" id="addon_pwd">@</span>
+        <input type="password" name='password' class="form-control" placeholder="password" style="width:20em"><br/>
+    </div>
+    <div class="input-group input-group-sm">
+        <span class="input-group-addon" id="addon_pwd_confirm">@</span>
+        <input type="password" name="password-repeat" class="form-control" placeholder="password" style="width:20em"><br/>
+    </div>
+    <div class="input-group input-group-sm">
+        <span class="input-group-addon" id="addon_email">@</span>
+        <input type="email" class="form-control" placeholder="email" style="width:20em"><br/>
+    </div>
+    <br/>
+    <input type="submit" value="Signup" class="btn btn-success"/>
+</form>
+
+<%- include footer %>

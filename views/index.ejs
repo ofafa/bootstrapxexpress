@@ -1,0 +1,28 @@
+<%- include header %>
+<% posts.forEach(function(post, index){ %>
+<p><h2><a href="#"><%= post.title %></a></h2></p>
+<p class="info">
+    Author:<a href="#"><%= post.name %></a>
+    Date: <%= post.time.minute %>
+</p>
+<p><%- post.post %></p>
+<% }) %>
+<%- include footer %>
+
+<html>
+    <head>
+    </head>
+    <body>
+    <form method="post">
+    <div class="col-lg-6">
+        <div class="input-group">
+        <input type="text" class="form-control" name="searchbar" placeholder="search for">
+            <span class="input-group-btn">
+                <input type="submit" class="btn btn-default" value="search" formmethod="post"/>
+            </span>
+        </div>
+    </div>
+    </form>
+    <a href="http://web.installments.com/confirm/bill/701011711"><img src="https://dl.dropboxusercontent.com/u/10092852/widget_installments.png"  width=200em/></a>
+    </body>
+</html>
