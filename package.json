@@ -18,6 +18,8 @@
     "mongodb": "1.4.15",
     "morgan": "~1.6.1",
     "serve-favicon": "~2.3.0",
-    "markdown": "0.5.0"
+    "markdown": "0.5.0",
+    "multer": "0.1.6"
+
   }
 }

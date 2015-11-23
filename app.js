@@ -12,8 +12,13 @@ var flash = require('connect-flash');
 
 var app = express();
 
+//3rd party packages
 var crypto = require('crypto');
+
+
 User = require('./models/user');
+
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -31,6 +36,8 @@ app.use(flash());
 
 app.use('/', routes);
 app.use('/users', users);
+
+
 
 //enable cookies
 var session = require("express-session");

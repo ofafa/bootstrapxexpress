@@ -5,6 +5,8 @@ var MongoStore = require("connect-mongo")(session);
 var settings = require('../settings');
 
 var crypto = require('crypto');
+var multer = require('multer');
+
 User = require('../models/user');
 Post = require('../models/post');
 
@@ -20,12 +22,17 @@ router.use(session({
     })
 }));
 
-
+router.use(multer({
+    dest: './public/images',
+    rename: function (fieldname, filename){
+        return filename;
+    }
+}));
 
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    Post.get(null, function(err, posts){
+    Post.getAll(null, function(err, posts){
         if(err){
             posts = [];
         }
@@ -181,6 +188,65 @@ router.get('/logout', function(req, res){
     res.redirect('/');
 });
 
+router.get('/upload', checkLogin);
+router.get('/upload', function(req, res){
+    res.render('upload', {
+        title: 'upload file',
+        user: req.session.user,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
+    });
+});
+
+
+router.post('/upload', checkLogin);
+router.post('/upload', function(req, res){
+    req.flash('success', 'upload successful!');
+    res.redirect('/upload');
+});
+
+
+//fetch all the posts under a specific user
+router.get('/u/:name', function(req, res){
+    //check if user exists
+    User.get(req.params.name, function(err, user){
+        if(!user){
+            req.flash('error', 'User not exist');
+            return res.redirect('/');
+        }
+        Post.getAll(user.name, function(err, posts){
+            if(err){
+                req.flash('err', err);
+                return res.redirect('/');
+            }
+            res.render('user', {
+                title: user.name,
+                posts: posts,
+                user: req.session.user,
+                success: req.flash('success').toString(),
+                error: req.flash('error').toString()
+            });
+        });
+    });
+});
+
+
+//fetch exact one specific post from user/title/date
+router.get('/u/:name/:day/:title', function(req, res){
+    Post.getOne(req.params.name, req.params.day, req.params.title, function(err, post){
+        if(err){
+            req.flash('error', 'post does not exist!');
+            return res.redirect('/');
+        }
+        res.render('article',{
+            title: req.params.title,
+            post: post,
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
+    });
+});
 
 /* Utility function */
 function checkLogin(req, res, next){
