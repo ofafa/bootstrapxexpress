@@ -117,3 +117,86 @@ Post.getOne = function(name, day, title, callback){
         });
     });
 };
+
+//return the origin content in markdown format
+Post.edit = function(name, day, title, callback){
+    //open database
+    mongodb.open(function(err, db){
+        if(err){
+            return callback(err);
+        }
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            collection.findOne({
+                name: name,
+                "time.day": day,
+                title: title
+            }, function(err, doc){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, doc);
+            });
+        });
+    });
+};
+
+//modify the content for specific doc
+Post.update = function(name, day, title, post, callback){
+    mongodb.open(function(err, db){
+        if(err){
+            mongodb.close();
+            callback(err);
+        }
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                callback(err);
+            }
+            //collection.update(query, update, options), $set=modifier
+            collection.update({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, { $set: {post: post}}, function(err){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null);
+            });
+        });
+    });
+};
+
+//remove a doc from the db collection
+Post.remove = function(name, day, title, callback){
+    mongodb.open(function(err, db){
+        if(err){
+            mongodb.close();
+            callback(err);
+        }
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                callback(err);
+            }
+            //collection.remove(query, justone, options), justone=true/false
+            collection.remove({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, { w: 1}, function(err){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null);
+            });
+        });
+    });
+};
