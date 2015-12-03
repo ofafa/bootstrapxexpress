@@ -22,7 +22,7 @@ Post.prototype.save = function(callback){
         day: date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate(),
         minute: date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " " + date.getHours() + ":"
         + (date.getMilliseconds() < 10?'0'+date.getMinutes() : date.getMinutes())
-    }
+    };
 
 
     //document for saving
@@ -31,7 +31,8 @@ Post.prototype.save = function(callback){
         time: time,
         title: this.title,
         post: this.post,
-        comments: []
+        comments: [],
+        pv: 0
     };
 
     //connecting DB
@@ -58,7 +59,7 @@ Post.prototype.save = function(callback){
 
 };
 
-Post.getAll = function(name, callback){
+Post.getTen = function(name, page, callback){
     //opendb
     mongodb.open(function(err, db){
         if(err){
@@ -73,19 +74,24 @@ Post.getAll = function(name, callback){
             if (name) {
                 query.name = name;
             }
-            collection.find(query).sort({
-                time: -1
-            }).toArray(function(err, docs){
-                mongodb.close();
-                if (err) {
-                    return callback(err);
-                }
-                docs.forEach(function(doc){
-                   doc.post = markdown.toHTML(doc.post);
+            //return specific document based on count
+            collection.count(query, function(err, total){
+                collection.find(query, {
+                    skip: (page -1) * 10,
+                    limit: 10
+                }).sort({
+                    time:-1
+                }).toArray(function(err, docs){
+                    mongodb.close();
+                    if(err){
+                        return callback(err);
+                    }
+                    docs.forEach(function(doc){
+                        doc.post = markdown.toHTML(doc.post);
+                    });
+                    callback(null, docs, total); //success and return the results
                 });
-                callback(null, docs); //success and return the results
             });
-
         });
     });
 };
@@ -107,18 +113,26 @@ Post.getOne = function(name, day, title, callback){
                 "time.day": day,
                 "title": title
             }, function(err, doc){
-                mongodb.close();
                 if(err){
+                    mongodb.close();
                     return callback(err);
                 }
                 if(doc){
+                    collection.update({
+                        "name": name,
+                        "time.day": day,
+                        "title": title
+                    }, {$inc:{ "pv" :1 }}, function(err){
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                    });
                     doc.post = markdown.toHTML(doc.post);
                     doc.comments.forEach(function(comment){
                         comment.content = markdown.toHTML(comment.content);
                     });
                 }
-
-
                 callback(null, doc);
             });
 
@@ -204,6 +218,34 @@ Post.remove = function(name, day, title, callback){
                     return callback(err);
                 }
                 callback(null);
+            });
+        });
+    });
+};
+
+Post.getArchive = function(callback){
+    mongodb.open(function(err, db){
+        if(err){
+            return callback(err);
+        }
+        //get post collection
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            collection.find({}, {
+                "name":1,
+                "time":1,
+                "title":1
+            }).sort({
+                time: -1
+            }).toArray(function(err, docs){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, docs);
             });
         });
     });

@@ -33,7 +33,8 @@ router.use(multer({
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    Post.getAll(null, function(err, posts){
+    var page = req.query.p? parseInt(req.query.p): 1;
+    Post.getTen(null, page, function(err, posts, total){
         if(err){
             posts = [];
         }
@@ -41,6 +42,9 @@ router.get('/', function(req, res, next) {
             title: 'Home',
             user: req.session.user,
             posts: posts,
+            page: page,
+            isFirstPage: (page-1) == 0,
+            isLastPage: ((page-1)*10 + posts.length)== total,
             success: req.flash('success').toString(),
             error: req.flash('error').toString()
         });
@@ -93,7 +97,7 @@ router.post('/login', function(req, res){
             if (password == user.password){
                 console.log("login successful!");
                 req.session.user = user;
-                req.flash('success','Login Successful!')
+                req.flash('success','Login Successful!');
                 res.redirect('/');
             }
             else{
@@ -210,12 +214,13 @@ router.post('/upload', function(req, res){
 //fetch all the posts under a specific user
 router.get('/u/:name', function(req, res){
     //check if user exists
+    var page = req.query.p? parseInt(req.query.p):1;
     User.get(req.params.name, function(err, user){
         if(!user){
             req.flash('error', 'User not exist');
             return res.redirect('/');
         }
-        Post.getAll(user.name, function(err, posts){
+        Post.getTen(user.name, page, function(err, posts, total){
             if(err){
                 req.flash('err', err);
                 return res.redirect('/');
@@ -223,6 +228,9 @@ router.get('/u/:name', function(req, res){
             res.render('user', {
                 title: user.name,
                 posts: posts,
+                page: page,
+                isFirstPage: (page-1) == 0,
+                isLastPage:((page-1) * 10 + posts.length) == total,
                 user: req.session.user,
                 success: req.flash('success').toString(),
                 error: req.flash('error').toString()
@@ -317,6 +325,23 @@ router.post('/u/:name/:day/:title', function(req, res){
         }
         req.flash('success', 'comment left successfully!');
         res.redirect('back');
+    });
+});
+
+
+router.get('/archive', function(req, res){
+    Post.getArchive(function(err, posts){
+        if(err){
+            req.flash('error', err);
+            return res.redirect('/');
+        }
+        res.render('archive',{
+            title:'archive',
+            posts:posts,
+            user:req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
     });
 });
 

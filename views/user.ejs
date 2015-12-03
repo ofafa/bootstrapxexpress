@@ -6,8 +6,8 @@
     Date: <%= post.time.minute %>
 </p>
 <p>
-<%= post.post %>
+<%- post.post %>
 </p>
 <% }) %>
-
+<%- include paging %>
 <%- include footer %>
