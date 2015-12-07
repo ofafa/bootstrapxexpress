@@ -168,7 +168,7 @@ Post.edit = function(name, day, title, callback){
 };
 
 //modify the content for specific doc
-Post.update = function(name, day, title, post, callback){
+Post.update = function(name, day, title, newtitle, post, callback){
     mongodb.open(function(err, db){
         if(err){
             mongodb.close();
@@ -184,7 +184,7 @@ Post.update = function(name, day, title, post, callback){
                 "name": name,
                 "time.day": day,
                 "title": title
-            }, { $set: {post: post}}, function(err){
+            }, { $set: {title: newtitle, post: post}}, function(err){
                 mongodb.close();
                 if(err){
                     return callback(err);

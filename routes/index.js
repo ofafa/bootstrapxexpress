@@ -278,8 +278,8 @@ router.get('/edit/:name/:day/:title', function(req, res){
 router.post('/edit/:name/:day/:title', checkLogin);
 router.post('/edit/:name/:day/:title', function(req, res){
     var currentUser = req.session.user;
-    Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function(err){
-        var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.params.title);
+    Post.update(currentUser.name, req.params.day, req.params.title, req.body.title, req.body.post, function(err){
+        var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.body.title);
         if(err){
             req.flash('err', err);
             return res.redirect(url);
