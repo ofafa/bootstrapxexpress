@@ -4,6 +4,14 @@
 <p class="info">
     Author:<a href="/u/<%= post.name %>"><%= post.name %></a>
     Date: <%= post.time.minute %>
+    Tags:
+    <% if(post.tags) { %>
+    <% post.tags.forEach(function(tag, index){ %>
+    <% if(tag) { %>
+    <a class="tag" href="/tags/<%= tag %>"><%= tag %></a>
+    <% }; %>
+    <% }); %>
+    <% } %>
 </p>
 <p><%- post.post %></p>
 <p class="info">Counts: <%= post.pv %> | Comments: <%= post.comments.length %></p>

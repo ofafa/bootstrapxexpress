@@ -4,10 +4,11 @@
 var mongodb = require('./db');
 var markdown = require('markdown').markdown;
 
-function Post(name, title, post){
+function Post(name, title, post, tags){
     this.name = name;
     this.title = title;
     this.post = post;
+    this.tags = tags;
 }
 
 module.exports = Post;
@@ -32,7 +33,8 @@ Post.prototype.save = function(callback){
         title: this.title,
         post: this.post,
         comments: [],
-        pv: 0
+        pv: 0,
+        tags: this.tags
     };
 
     //connecting DB
@@ -249,4 +251,56 @@ Post.getArchive = function(callback){
             });
         });
     });
+};
+
+Post.getTags = function(callback){
+    mongodb.open(function(err, db){
+        if(err){
+            mongodb.close();
+            return callback(err);
+        }
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            collection.distinct('tags', function(err, docs){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+        });
+    });
+};
+
+Post.getTag = function(tag, callback){
+    mongodb.open(function(err, db){
+        if(err){
+            return callback(err);
+        }
+        db.collection('posts', function(err, collection){
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            collection.find({
+                tags: tag
+            }, {
+                name: 1,
+                time: 1,
+                title: 1
+            }).sort({
+                time: -1
+            }).toArray(function(err, docs){
+                mongodb.close();
+                if(err){
+                    return callback(err);
+                }
+                callback(null, docs);
+            });
+        });
+    });
+
 };

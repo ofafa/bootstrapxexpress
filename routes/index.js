@@ -175,7 +175,8 @@ router.get('/post', function(req, res){
 
 router.post('/post', function(req, res){
     var currentUser = req.session.user,
-        post = new Post(currentUser.name, req.body['article_title'], req.body.context);
+        tags = [req.body.tag1, req.body.tag2, req.body.tag3],
+        post = new Post(currentUser.name, req.body['article_title'], req.body.context, tags);
     post.save(function(err){
         if(err){
             req.flash('error', err);
@@ -341,6 +342,39 @@ router.get('/archive', function(req, res){
             user:req.session.user,
             success: req.flash('success').toString(),
             error: req.flash('error').toString()
+        });
+    });
+});
+
+router.get('/tags', function(req, res){
+    Post.getTags(function(err, posts){
+        if(err) {
+            res.flash('error', err);
+            return res.redirect('/');
+        }
+        res.render('tags', {
+            title: 'tags',
+            posts: posts,
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
+    });
+});
+
+router.get('/tags/:tag', function(req, res){
+    Post.getTag(req.params.tag, function(err, posts){
+        if(err){
+            req.flash('error', err);
+            return res.redirect('/');
+        }
+        res.render('tag', {
+            title: 'TAG:' + req.params.tag,
+            posts: posts,
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+
         });
     });
 });
