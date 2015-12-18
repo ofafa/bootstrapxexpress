@@ -31,6 +31,8 @@ router.use(multer({
 }));
 
 
+
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
     var page = req.query.p? parseInt(req.query.p): 1;
@@ -378,6 +380,31 @@ router.get('/tags/:tag', function(req, res){
         });
     });
 });
+
+router.get('/search', function(req, res){
+    Post.search(req.query.keyword, function(err, posts){
+        if(err){
+            req.flash('error', err);
+            return res.redirect('/');
+        }
+        res.render('search', {
+            title: "SEARCH:" + req.query.keyword,
+            posts: posts,
+            user: req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
+    });
+});
+
+
+
+router.use(function(req, res){
+    res.render("404");
+});
+
+
+
 
 /* Utility function */
 function checkLogin(req, res, next){
