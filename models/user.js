@@ -2,6 +2,7 @@
  * Created by s955281 on 10/22/15.
  */
 var mongodb = require('./db');
+var crypto = require('crypto');
 
 function User(user){
     this.name = user.name;
@@ -13,10 +14,15 @@ module.exports = User;
 
 User.prototype.save = function(callback){
     //user profiles for saving
+    var md5 = crypto.createHash('md5'),
+        email_MD5 = md5.update(this.email.toLowerCase()).digest('hex'),
+        head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";//s=size
+
     var user = {
         name: this.name,
         password: this.password,
-        email: this.email
+        email: this.email,
+        head: head
     };
 
     mongodb.open(function (err, db) {

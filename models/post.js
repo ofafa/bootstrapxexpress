@@ -4,8 +4,9 @@
 var mongodb = require('./db');
 var markdown = require('markdown').markdown;
 
-function Post(name, title, post, tags){
+function Post(name, head, title, post, tags){
     this.name = name;
+    this.head = head;
     this.title = title;
     this.post = post;
     this.tags = tags;
@@ -29,12 +30,14 @@ Post.prototype.save = function(callback){
     //document for saving
     var post = {
         name: this.name,
+        head: this.head,
         time: time,
         title: this.title,
         post: this.post,
         comments: [],
         pv: 0,
-        tags: this.tags
+        tags: this.tags,
+        reprint_info:{}
     };
 
     //connecting DB
@@ -209,17 +212,49 @@ Post.remove = function(name, day, title, callback){
                 mongodb.close();
                 callback(err);
             }
-            //collection.remove(query, justone, options), justone=true/false
-            collection.remove({
+            collection.findOne({
                 "name": name,
                 "time.day": day,
                 "title": title
-            }, { w: 1}, function(err){
-                mongodb.close();
+            }, function(err, post){
                 if(err){
+                    mongodb.close();
                     return callback(err);
                 }
-                callback(null);
+                console.log(post.reprint_info);
+                if(post.reprint_info.reprint_from){
+                    collection.update({
+                        "name": post.reprint_info.reprint_from.name,
+                        "time.day": post.reprint_info.reprint_from.day,
+                        "title": post.reprint_info.reprint_from.title
+                    }, {$pull:{
+                        "reprint_info.reprint_to": {
+                            "name": name,
+                            "day": day,
+                            "title": title
+                        }}
+                    }, function(err){
+                        if(err){
+                            mongodb.close();
+                            return callback(err);
+                        }
+                    });
+                }
+                console.log('----');
+                console.log(post.reprint_info);
+
+                //collection.remove(query, justone, options), justone=true/false
+                collection.remove({
+                    "name": name,
+                    "time.day": day,
+                    "title": title
+                }, { w: 1}, function(err){
+                    mongodb.close();
+                    if(err){
+                        return callback(err);
+                    }
+                    callback(null);
+                });
             });
         });
     });
@@ -332,5 +367,78 @@ Post.search = function(keyword, callback){
                 callback(null, docs);
             });
         });
+    });
+};
+
+
+
+Post.reprint = function(reprint_from, reprint_to, callback) {
+    mongodb.open(function (err, db) {
+        if (err) {
+            return callback(err);
+        }
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
+            }
+            collection.findOne({
+                name: reprint_from.name,
+                "time.day": reprint_from.day,
+                "title": reprint_from.title
+            }, function (err, doc) {
+                if (err) {
+                    mongodb.close();
+                    return callback(err);
+                }
+                var date = new Date();
+                var time = {
+                    date: date,
+                    year: date.getFullYear(),
+                    month: date.getFullYear() + "-" + (date.getMonth() + 1),
+                    day: date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate(),
+                    minute: date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + ":"
+                    + (date.getMilliseconds() < 10 ? '0' + date.getMinutes() : date.getMinutes())
+                };
+                delete doc._id;//Remove original ID
+                doc.name = reprint_to.name;
+                doc.head = reprint_to.head;
+                doc.time = time;
+                doc.title = (doc.title.search(/"[reprint]"/) > -1) ? doc.title : "[reprint]" + doc.title;
+                doc.comment = [];
+                doc.reprint_info = {"reprint_from": reprint_from};
+                doc.pv = 0;
+
+                //update the reprint_info in original doc
+                collection.update({
+                    "name": reprint_from.name,
+                    "time.day": reprint_from.day,
+                    "title": reprint_from.title
+                }, {
+                    $push: {"reprint_info.reprint_to":
+                        {
+                        "name": doc.name,
+                        "day": time.day,
+                        "title": doc.title
+                        }
+                    }
+                }, function (err) {
+                    if (err) {
+                        mongodb.close();
+                        return callback(err);
+                    }
+                });
+                collection.insert(doc, {
+                    safe: true
+                }, function (err, post) {
+                    mongodb.close();
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(err, post[0]);
+                });
+            });
+        });
+
     });
 };

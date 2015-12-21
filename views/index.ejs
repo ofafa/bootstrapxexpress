@@ -1,6 +1,7 @@
 <%- include header %>
 <% posts.forEach(function(post, index){ %>
-<p><h2><a href="/u/<%= post.name %>/<%= post.time.day %>/<%= post.title %>"><%= post.title %></a></h2></p>
+<p><h2><a href="/u/<%= post.name %>/<%= post.time.day %>/<%= post.title %>" /> <%= post.title %> </h2>
+<a href="/u/<%= post.name %>"><img src="<%= post.head %>" class="r_head" /></a>
 <p class="info">
     Author:<a href="/u/<%= post.name %>"><%= post.name %></a>
     Date: <%= post.time.minute %>
@@ -12,9 +13,25 @@
     <% }; %>
     <% }); %>
     <% } %>
+    <% if (post.reprint_info != undefined) { %>
+    <% if (post.reprint_info.reprint_from){ %>
+    <br><a href="/u/<%= post.reprint_info.reprint_from.name %>/<%= post.reprint_info.reprint_from.day %>/<%= post.reprint_info.reprint_from.title %>">Original</a>
+    <% } %>
+    <% } %>
 </p>
 <p><%- post.post %></p>
-<p class="info">Counts: <%= post.pv %> | Comments: <%= post.comments.length %></p>
+<p class="info">
+    Counts: <%= post.pv %> |
+    Comments: <%= post.comments.length %> |
+    Reprint:
+    <% if (post.reprint_info){ %>
+    <% if (post.reprint_info.reprint_to) { %>
+    <%= post.reprint_info.reprint_to.length %>
+    <% } else { %>
+    <%= 0 %>
+    <% } %>
+    <% } %>
+</p>
 <% }) %>
 <%- include paging %>
 <%- include footer %>

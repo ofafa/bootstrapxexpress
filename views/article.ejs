@@ -8,6 +8,25 @@
         <a class="edit" href="/remove/<%= post.name %>/<%= post.time.day %>/<%= post.title %>">Remove</a>
     </span>
     <% } %>
+
+    <% var flag = 1; %>
+    <% if (user && (user.name != post.name)) { %>
+        <% if ((post.reprint_info.reprint_from != undefined ) && (user.name == post.reprint_info.reprint_from.name)) { %>
+            <% flag = 0; %>
+        <% } %>
+        <% if ((post.reprint_info.reprint_to != undefined))  { %>
+        <% post.reprint_info.reprint_to.forEach(function(reprint_to, index){%>
+            <% if (user.name == reprint_to.name) { %>
+                <% flag = 0 %>
+            <% } %>
+            <% }) %>
+        <% } %>
+    <% } else { %>
+    <% flag = 0 %>
+    <% } %>
+    <% if(flag) { %>
+    <span><a class="edit" href="/reprint/<%= post.name %>/<%= post.time.day %>/<%= post.title %>">Reprint</a></span>
+    <% } %>
 </p>
 <p class="info">
     Author: <a href="/u/<%= post.name%>"> <%= post.name %></a>
@@ -17,13 +36,28 @@
     <% post.tags.forEach(function(tag, index){ %>
     <% if(tag) { %>
     <a class="tag" href="/tags/<%= tag %>"><%= tag %></a>
-    <% }; %>
+    <% } %>
     <% }); %>
+    <% } %>
+    <% if (post.reprint_info != undefined) { %>
+    <% if (post.reprint_info.reprint_from){ %>
+    <br><a href="/u/<%= post.reprint_info.reprint_from.name %>/<%= post.reprint_info.reprint_from.day %>/<%= post.reprint_info.reprint_from.title %>">Original</a>
+    <% } %>
     <% } %>
 </p>
 <p>
     <%- post.post %>
-<p class="info">Counts: <%= post.pv %> | Comments: <%= post.comments.length %></p>
+<p class="info" >
+    Counts: <%= post.pv %> |
+    Comments: <%= post.comments.length %> |
+    Reprint:
+    <% if (post.reprint_info){ %>
+        <% if (post.reprint_info.reprint_to) { %>
+            <%= post.reprint_info.reprint_to.length %>
+        <% } else { %>
+        <%= 0 %>
+        <% } %>
+    <% } %>
 </p>
 <%- include comment %>
 <%- include footer %>
