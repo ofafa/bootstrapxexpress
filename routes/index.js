@@ -20,7 +20,9 @@ router.use(session({
         host: settings.host,
         port: settings.port,
         auto_reconnect: true
-    })
+    }),
+    saveUninitialized: true,
+    resave: true
 }));
 
 router.use(multer({
