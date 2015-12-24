@@ -8,17 +8,27 @@
 
 </head>
 <body>
-<header>
     <h1 align="center"><%= title %></h1>
+
+    <% if (user) { %>
+    <div align="right"><a href="/u/<%=user.name%>/profile" class="dropdown-toggle" aria-expanded="true"><img class="profile" src="<%= user.head %>"></a></div></br>
+    <% } else { %>
+    <a href="/login">Login</a>
+    <% } %>
+
+    <span align="right"><form action="search" method="GET"><input type="text" placeholder="SEARCH" name="keyword" class="search"/>
+            <input type="submit" value="search"></form></span>
+
+
     <% if (success) { %>
     <div align="right"><%= success %></div>
     <% } %>
     <% if (error) { %>
     <div><%= error %></div>
     <% } %>
+    <hr>
 </header>
-<span><form action="search" method="GET"><input tyep="text" placeholder="SEARCH" name="keyword" class="search"/>
-        <input type="submit" value="search"></form></span>
+
 <nav>
     <span><a title="Home" href="/">Home</a></span>
     <span><a title="Archive" href="/archive">Archive</a></span>

@@ -4,11 +4,11 @@
 var mongodb = require('./db');
 var crypto = require('crypto');
 
-function User(user){
+function User(user) {
     this.name = user.name;
     this.password = user.password;
     this.email = user.email;
-};
+}
 
 module.exports = User;
 
@@ -68,4 +68,51 @@ User.get = function(name, callback){
             });
         });
     });
+};
+
+User.update = function(name, password, email, head, callback){
+    mongodb.open(function(err, db){
+        if(err){
+            return callback(err);
+        }
+        db.collection('users', function(err, collection){
+            if(err){
+                mongodb.close();
+                return callback(err);
+            }
+            //update pwd and email
+            if(password!="" && email != ""){
+                this.checkPassword(password, function(err, callback){
+                    if(err){
+                        mongodb.close();
+                        return callback(err);
+                    }
+                    collection.update({"name":name}, {$set:{"password":password, "email":email}}, function(err){
+                        if(err){
+                            mongodb.close();
+                            return callback(err);
+                        }
+
+                    });
+                });
+            }
+            if(head){
+                collection.update({"name":name}, {$set:{head:head}}, function(err){
+                    if(err){
+                        mongodb.close();
+                        return callback(err);
+                    }
+                    mongodb.close();
+                    callback(null);
+                });
+            }
+        });
+    });
+};
+
+User.checkPassword = function (password, callback){
+    if(password == this.password){
+        return callback('same password');
+    }
+    return true;
 };

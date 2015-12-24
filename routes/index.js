@@ -244,6 +244,37 @@ router.get('/u/:name', function(req, res){
     });
 });
 
+//Display user profiles
+router.get('/u/:name/profile', function(req, res){
+   User.get(req.params.name, function(err, user){
+       if(!user){
+           req.flash('error', 'User does not exist');
+           return res.redirect('back');
+       }
+       res.render('profile', {
+           title: req.session.user.name + " Profile",
+           user: req.session.user,
+           success: req.flash('success').toString(),
+           error: req.flash('error').toString()
+       });
+   });
+});
+var upload = multer({ dest: './public/profile'});
+router.post('/u/profile/upload/:name', upload, function(req, res){
+
+    console.log('update head: ' + './public/images/');
+    User.update(req.params.name, '','', req.path, function(err){
+        if(err){
+            req.flash('error', 'User does not exist');
+            return res.redirect('/u/:name/profile');
+        }
+        req.flash('success', 'upload successful!');
+        res.redirect('/u/:name/profile');
+
+    })
+
+});
+
 
 //fetch exact one specific post from user/title/date
 router.get('/u/:name/:day/:title', function(req, res){
@@ -317,7 +348,7 @@ router.post('/u/:name/:day/:title', function(req, res){
 
     var md5 = crypto.createHash('md5'),
         email_MD5 = md5.update(req.body.email.toLowerCase()).digest('hex'),
-        head = "http://www.gravatar.com/avatar/" + email_MD5 + '?s=48'
+        head = "http://www.gravatar.com/avatar/" + email_MD5 + '?s=48';
 
     var comment = {
         name: req.body.name,
